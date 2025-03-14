@@ -1,0 +1,18 @@
+{
+  "name": "toddle-query-tool",
+  "version": "1.0.0",
+  "description": "AI-powered SQL query tool for ClickHouse",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm start",
+    "client": "cd frontend && npm start",
+    "install-all": "npm install && npm run install-server && npm run install-client",
+    "install-server": "cd backend && npm install",
+    "install-client": "cd frontend && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "@clickhouse/client": "^0.3.0"
+  }
+}
