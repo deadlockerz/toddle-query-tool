@@ -1,46 +1,23 @@
-const axios = require("axios");
+const { OpenAI } = require("openai");
 
-const getGitHubCopilotClient = (token) => {
-  // Use provided token or fall back to environment variable
-  const authToken = token || process.env.GITHUB_TOKEN;
+const getOpenAIClient = (apiKey) => {
+  try {
+    // Use provided API key or fall back to environment variable
+    const key = apiKey || process.env.OPENAI_API_KEY;
 
-  if (!authToken) {
-    throw new Error("GitHub token is required for Copilot functionality");
+    if (!key) {
+      throw new Error(
+        "OpenAI API key is required. Please provide an API key or set OPENAI_API_KEY environment variable.",
+      );
+    }
+
+    return new OpenAI({
+      apiKey: key,
+    });
+  } catch (error) {
+    console.error("Error creating OpenAI client:", error);
+    throw error;
   }
-
-  return {
-    createChatCompletion: async (options) => {
-      const {
-        messages,
-        model = "copilot-4",
-        temperature = 0.7,
-        max_tokens = 500,
-      } = options;
-
-      try {
-        const response = await axios.post(
-          "https://api.github.com/copilot/chat",
-          {
-            messages,
-            temperature,
-            max_tokens,
-            model,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        return response.data;
-      } catch (error) {
-        console.error("GitHub Copilot API error:", error.message);
-        throw new Error(`GitHub Copilot API error: ${error.message}`);
-      }
-    },
-  };
 };
 
-module.exports = { getGitHubCopilotClient };
+module.exports = { getOpenAIClient };

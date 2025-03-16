@@ -107,6 +107,13 @@ function SettingsDialog({
     setModel(newModel);
   };
 
+  // Update model options for OpenAI
+  const modelOptions = [
+    { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
+    { value: "gpt-4", label: "GPT-4" },
+    { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  ];
+
   return (
     <Dialog
       open={open}

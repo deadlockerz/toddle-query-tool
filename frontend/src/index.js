@@ -4,9 +4,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import App from "./App";
+import { setupResizeObserverErrorHandler } from "./utils/schemaUtils";
 
 // Create a client for React Query
 const queryClient = new QueryClient();
+
+// Setup the ResizeObserver error handler before rendering the app
+setupResizeObserverErrorHandler();
 
 // Create a theme instance
 const theme = createTheme({

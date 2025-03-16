@@ -5,9 +5,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 
-// Import routes - Updated to ensure correct paths
-const schemaRoutes = require("./src/routes/schema");
-const queryRoutes = require("./src/routes/query");
+// Import routes - Only keeping what we need
 const aiRoutes = require("./routes/ai");
 const configRoutes = require("./routes/config");
 
@@ -20,7 +18,7 @@ app.set("trust proxy", 1);
 // Middleware
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // Increase JSON size limit
 app.use(morgan("dev"));
 
 // Rate limiting
@@ -30,11 +28,16 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Routes - Updated to use the correct route handlers
-app.use("/api/schema", schemaRoutes);
-app.use("/api/query", queryRoutes);
+// Increase request timeout
+app.timeout = 60000; // 60 seconds
+
+// Routes - Only keeping what we need
 app.use("/api/ai", aiRoutes);
 app.use("/api/config", configRoutes);
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 
 app.get("/", (req, res) => {
   res.send("Toddle Query Tool API is running!");

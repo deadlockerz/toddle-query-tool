@@ -1,92 +1,59 @@
-const axios = require("axios");
+const { getOpenAIClient } = require("../config/github");
 
-// Generate SQL query based on natural language prompt and schema using GitHub Copilot API
-async function generateQuery(prompt, schema, token, model = "copilot-4") {
+// Generate SQL query based on natural language prompt and schema using OpenAI API
+async function generateQuery(prompt, schema, apiKey, model = "gpt-3.5-turbo") {
   try {
     const schemaStr = JSON.stringify(schema, null, 2);
-    // Use provided token or fall back to environment variable
-    const authToken = token || process.env.GITHUB_TOKEN;
+    const openai = getOpenAIClient(apiKey);
 
-    if (!authToken) {
-      throw new Error(
-        "GitHub token is required. Please provide a token or set GITHUB_TOKEN environment variable.",
-      );
-    }
-
-    // The GitHub Copilot API endpoint
-    const response = await axios.post(
-      "https://api.github.com/copilot/chat",
-      {
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert SQL assistant specialized in ClickHouse SQL. 
-            Generate only valid ClickHouse SQL queries based on user requirements.
-            The database has the following schema: ${schemaStr}`,
-          },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.1,
-        max_tokens: 1000,
-        model: model, // Use the specified model
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          "Content-Type": "application/json",
+    const response = await openai.chat.completions.create({
+      model: model,
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert SQL assistant specialized in ClickHouse SQL. 
+          Generate only valid ClickHouse SQL queries based on user requirements.
+          The database has the following schema: ${schemaStr}`,
         },
-      },
-    );
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.1,
+      max_tokens: 1000,
+    });
 
-    return response.data.choices[0].message.content;
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error("Error generating query with GitHub:", error);
-    throw new Error("Failed to generate SQL query using GitHub API");
+    console.error("Error generating query with OpenAI:", error);
+    throw new Error("Failed to generate SQL query using OpenAI API");
   }
 }
 
 // Explain the generated SQL query
-async function explainQuery(query, token, model = "copilot-4") {
+async function explainQuery(query, apiKey, model = "gpt-3.5-turbo") {
   try {
-    // Use provided token or fall back to environment variable
-    const authToken = token || process.env.GITHUB_TOKEN;
+    const openai = getOpenAIClient(apiKey);
 
-    if (!authToken) {
-      throw new Error(
-        "GitHub token is required. Please provide a token or set GITHUB_TOKEN environment variable.",
-      );
-    }
-
-    const response = await axios.post(
-      "https://api.github.com/copilot/chat",
-      {
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert SQL assistant. Explain the provided SQL query in simple terms.",
-          },
-          {
-            role: "user",
-            content: `Explain the following ClickHouse SQL query in simple terms: ${query}`,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-        model: model, // Use the specified model
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          "Content-Type": "application/json",
+    const response = await openai.chat.completions.create({
+      model: model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert SQL assistant. Explain the provided SQL query in simple terms.",
         },
-      },
-    );
+        {
+          role: "user",
+          content: `Explain the following SQL query in simple terms: ${query}`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    });
 
-    return response.data.choices[0].message.content;
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error("Error explaining query with GitHub:", error);
-    throw new Error("Failed to explain SQL query using GitHub API");
+    console.error("Error explaining query with OpenAI:", error);
+    throw new Error("Failed to explain SQL query using OpenAI API");
   }
 }
 
